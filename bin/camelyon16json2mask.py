@@ -282,7 +282,7 @@ class json2mask(object):
        
             label_img = np.zeros((self._img_size, self._img_size),dtype=np.int64)#768x768 all black
     
-            logging.info('begin transfering {}th label image {} ({}, {})...'.format(idx, pid, x_center, y_center))
+#            logging.info('begin transfering {}th label image {} ({}, {})...'.format(idx, pid, x_center, y_center))
             
             for x_idx in range(self._img_size):
                 for y_idx in range(self._img_size):
@@ -299,7 +299,7 @@ class json2mask(object):
                     # the original WSI (x, y)
                     label_img[x_idx, y_idx] = label
                     
-            logging.info('before saving {}th label image ...'.format(idx))
+#            logging.info('before saving {}th label image ...'.format(idx))
                     
     ##        save_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID/mask/'
     #        save_path = self._data_path+'/mask/'
@@ -328,7 +328,7 @@ class json2mask(object):
     #        new_im = Image.fromarray(data.astype(np.uint8))        
             
             
-        logging.info('saved {}th label image ...'.format(idx))
+#        logging.info('saved {}th label image ...'.format(idx))
 
         '''modified'''        
         global lock
@@ -337,9 +337,9 @@ class json2mask(object):
         with lock:
             count.value += 1
             if (count.value) % 100 == 0:
-                logging.info('{}, {} masks generated...'
+                logging.info('{}, {}/{} masks generated...'
                              .format(time.strftime("%Y-%m-%d %H:%M:%S"),
-                                     count.value))
+                                     count.value, self._num_image))
                                      
                                      
 #        img = Image.open(os.path.join(self._data_path, '{}.png'.format(idx)))
@@ -391,13 +391,13 @@ class json2mask(object):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-#    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
+    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 #    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_VALID'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 #    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
-    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
+#    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 
-#    json_path = '/mnt/lustre/yuxian/Code/NCRF-master/jsons/valid'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/jsons/valid'#/yuxian/Code/NCRF-master/json'
-    json_path = '/mnt/lustre/yuxian/Code/NCRF-master/jsons/train'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/jsons/valid'#/yuxian/Code/NCRF-master/json'
+    json_path = '/mnt/lustre/yuxian/Code/NCRF-master/jsons/valid'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/jsons/valid'#/yuxian/Code/NCRF-master/json'
+#    json_path = '/mnt/lustre/yuxian/Code/NCRF-master/jsons/train'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/jsons/valid'#/yuxian/Code/NCRF-master/json'
     json2mask(data_path,json_path)
 #    json2mask(data_path,json_path)
     

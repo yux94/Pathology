@@ -64,7 +64,7 @@ def run(args):
     
         outfile.close()
         count += 1
-        if count%100==0:
+        if count%1==0:
             time_spent = time.time() - time_now
             time_now = time.time()
             logging.info(
@@ -88,12 +88,12 @@ def run(args):
 #        x_mask, y_mask = max_idx[0][0], max_idx[1][0]
 #        x_wsi = int((x_mask + 0.5) * resolution)
 #        y_wsi = int((y_mask + 0.5) * resolution)
-#        outfile.write('{:0.5f},{},{}'.format(prob_max, x_wsi, y_wsi) + '\n')
+#        outfile.write('{:0.5f},{},{}'.format(prob_max, x_wsi, y_wsi) + '\n')  #prob(>0.5),x,y
 #
 #        x_min = x_mask - args.radius if x_mask - args.radius > 0 else 0
 #        x_max = x_mask + args.radius if x_mask + args.radius <= X else X
 #        y_min = y_mask - args.radius if y_mask - args.radius > 0 else 0
-#        y_max = y_mask + args.radius if y_mask + args.radius <= Y else Y
+#       y_max = y_mask + args.radius if y_mask + args.radius <= Y else Y
 #
 #        for x in range(x_min, x_max):
 #            for y in range(y_min, y_max):

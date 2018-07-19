@@ -18,12 +18,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../../')
 
 parser = argparse.ArgumentParser(description='Generate patches from a given '
                                  'list of coordinates')
-parser.add_argument('wsi_path', default='/Data/WSI_TRAIN/', metavar='WSI_PATH', type=str,
+parser.add_argument('wsi_path', default='/Data/WSI_TRAIN_VAL/', metavar='WSI_PATH', type=str,
+#parser.add_argument('wsi_path', default='/Data/WSI_TRAIN/', metavar='WSI_PATH', type=str,
                     help='Path to the input directory of WSI files')
-parser.add_argument('coords_path', default='/coords/normal_train1.txt', metavar='COORDS_PATH',
-                    type=str, help='Path to the input list of coordinates')
-parser.add_argument('patch_path', default='/Data/PATCHES_NORMAL_TRAIN/1/', metavar='PATCH_PATH', type=str,
-                    help='Path to the output directory of patch images')
+parser.add_argument('coords_path', default='/coords/resample/normal_train.txt', metavar='COORDS_PATH',
+#parser.add_argument('coords_path', default='/coords/normal_train.txt', metavar='COORDS_PATH',
+                    type=str, help='Path to the input list of coordinates')#normal_train   normal_valid   tumor_train   tumor_valid
+parser.add_argument('patch_path', default='/Data/resample/PATCHES_NORMAL_TRAIN/', metavar='PATCH_PATH', type=str,
+#parser.add_argument('patch_path', default='/Data/PATCHES_NORMAL_TRAIN/', metavar='PATCH_PATH', type=str,
+                    help='Path to the output directory of patch images')#PATCHES_NORMAL_TRAIN  PATCHES_NORMAL_VALID  PATCHES_TUMOR_TRAIN  PATCHES_TUMOR_VALID
 parser.add_argument('--patch_size', default=768, type=int, help='patch size, '
                     'default 768')
 parser.add_argument('--level', default=0, type=int, help='level for WSI, to '
@@ -85,7 +88,7 @@ def run(args):
     infile = open(args.coords_path)
     for i, line in enumerate(infile):
         pid, x_center, y_center = line.strip('\n').split(',')
-        opts_list.append((i, pid, x_center, y_center, args))
+        opts_list.append((i, pid, int(float(x_center)), int(float(y_center)), args))
 #        process(i, pid, x_center, y_center, args)
         
     infile.close()

@@ -33,7 +33,7 @@ parser.add_argument('mask_path', default=None, metavar='MASK_PATH', type=str,
                     help='Path to the tissue mask of the input WSI file')
 parser.add_argument('probs_map_path', default=None, metavar='PROBS_MAP_PATH',
                     type=str, help='Path to the output probs_map numpy file')
-parser.add_argument('--GPU', default='7', type=str, help='which GPU to use'
+parser.add_argument('--GPU', default='1', type=str, help='which GPU to use'
                     ', default 0')
 parser.add_argument('--num_workers', default=5, type=int, help='number of '
                     'workers to use to make batch, default 5')
@@ -119,7 +119,7 @@ def run(args):
 
     patch_per_side = cfg['image_size'] // cfg['patch_size']
     grid_size = patch_per_side * patch_per_side
-
+#
     ckpt = torch.load(args.ckpt_path)
     model = MODELS[cfg['model']](num_nodes=grid_size, use_crf=cfg['use_crf'])
     model.load_state_dict(ckpt['state_dict'])
@@ -128,56 +128,58 @@ def run(args):
     '''批量tif预测'''
     count = 0
     files = os.listdir(args.wsi_path)
+    files.reverse() 
+    
     for eachfile in files:
-        
-        mask_path = args.mask_path+eachfile[:-4]+'.npy'
-        mask = np.load(mask_path)
-        if not os.path.exists(args.probs_map_path+eachfile[:-4]+'.npy'):
-            if not args.eight_avg:
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='NONE', rotate='NONE')
+        if count>len(files)/2:        
+            mask_path = args.mask_path+eachfile[:-4]+'.npy'
+            mask = np.load(mask_path)
+            if not os.path.exists(args.probs_map_path+eachfile[:-4]+'.npy'):
+                if not args.eight_avg:
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='NONE', rotate='NONE')
+                        
+                    probs_map = get_probs_map(count, len(files), model, dataloader)
                     
-                probs_map = get_probs_map(count, len(files), model, dataloader)
-                
-            else:
-                probs_map = np.zeros(mask.shape)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='NONE', rotate='NONE')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='NONE', rotate='ROTATE_90')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='NONE', rotate='ROTATE_180')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='NONE', rotate='ROTATE_270')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='FLIP_LEFT_RIGHT', rotate='NONE')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_90')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_180')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                dataloader = make_dataloader(
-                    args, eachfile, mask_path, cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_270')
-                probs_map += get_probs_map(count, len(files), model, dataloader)
-        
-                probs_map /= 8
-        
-            np.save(args.probs_map_path+eachfile[:-4], probs_map)        
+                else:
+                    probs_map = np.zeros(mask.shape)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='NONE', rotate='NONE')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='NONE', rotate='ROTATE_90')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='NONE', rotate='ROTATE_180')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='NONE', rotate='ROTATE_270')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='FLIP_LEFT_RIGHT', rotate='NONE')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_90')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_180')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    dataloader = make_dataloader(
+                        args, eachfile, eachfile[:-4]+'.npy', cfg, flip='FLIP_LEFT_RIGHT', rotate='ROTATE_270')
+                    probs_map += get_probs_map(count, len(files), model, dataloader)
+            
+                    probs_map /= 8
+            
+                np.save(args.probs_map_path+eachfile[:-4], probs_map)        
 
         count += 1
                         

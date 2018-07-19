@@ -29,7 +29,7 @@ parser.add_argument('save_path', default=None, metavar='SAVE_PATH', type=str,
                     help='Path to the saved models')
 parser.add_argument('--num_workers', default=2, type=int, help='number of'
                     ' workers for each data loader, default 2.')
-parser.add_argument('--device_ids', default='6', type=str, help='comma'
+parser.add_argument('--device_ids', default='3', type=str, help='comma'
                     ' separated indices of GPU to use, e.g. 0,1 for using GPU_0'
                     ' and GPU_1, default 0.')
 parser.add_argument('--resume', default=True, type=bool, help='bool'
@@ -59,7 +59,7 @@ def train_epoch(summary, summary_writer, cfg, model, loss_fn, optimizer,
             torch.randperm(batch_size * 2).cuda(async=True))
 
         data = torch.cat([data_tumor, data_normal])[idx_rand]
-        target = torch.cat([target_tumor, target_normal])[idx_rand]
+        target = torch.cat([target_tumor, target_normal])[idx_rand]#打乱
         output = model(data)
         loss = loss_fn(output, target)
 

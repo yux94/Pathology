@@ -14,7 +14,7 @@ from scipy import ndimage as nd
 from skimage import measure
 import os
 import sys
-
+plt.switch_backend('agg')
    
 def computeEvaluationMask(maskDIR, resolution, level):
     """Computes the evaluation mask.
@@ -27,15 +27,19 @@ def computeEvaluationMask(maskDIR, resolution, level):
     Returns:
         evaluation_mask
     """
-    slide = openslide.open_slide(maskDIR)
-    dims = slide.level_dimensions[level]
-    pixelarray = np.zeros(dims[0]*dims[1], dtype='uint')
-    pixelarray = np.array(slide.read_region((0,0), level, dims))
-    distance = nd.distance_transform_edt(255 - pixelarray[:,:,0])
+#    slide = openslide.open_slide(maskDIR)
+#    dims = slide.level_dimensions[level]
+#    pixelarray = np.zeros(dims[0]*dims[1], dtype='uint')
+#    pixelarray = np.array(slide.read_region((0,0), level, dims))
+#    pixelarray = np.transpose(np.load(maskDIR))
+    pixelarray = np.load(maskDIR)
+    print(np.shape(pixelarray))
+    distance = nd.distance_transform_edt(255 - pixelarray)
     Threshold = 75/(resolution * pow(2, level) * 2) # 75µm is the equivalent size of 5 tumor cells
     binary = distance < Threshold
     filled_image = nd.morphology.binary_fill_holes(binary)
     evaluation_mask = measure.label(filled_image, connectivity = 2) 
+    
     return evaluation_mask
     
     
@@ -202,24 +206,26 @@ def plotFROC(total_FPs, total_sensitivity):
     fig.suptitle('Free response receiver operating characteristic curve', fontsize=12)
     plt.plot(total_FPs, total_sensitivity, '-', color='#000000')    
     plt.show()       
-      
+    plt.savefig('/mnt/lustre/yuxian/Code/NCRF-master/COORD_PATH/crf/'+'FROC.png')      
     
 if __name__ == "__main__":
 
-    mask_folder = sys.argv[1]  #ground turth
-    result_folder = sys.argv[2]
+    mask_folder = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level7'
+    result_folder = '/mnt/lustre/yuxian/Code/NCRF-master/COORD_PATH/crf'
     result_file_list = []
     result_file_list += [each for each in os.listdir(result_folder) if each.endswith('.csv')]
     
-    EVALUATION_MASK_LEVEL = 5 # Image level at which the evaluation is done
+    EVALUATION_MASK_LEVEL = 6 # Image level at which the evaluation is done
     L0_RESOLUTION = 0.243 # pixel resolution at level 0
+    mask_downsample_folder = '/mnt/lustre/yuxian/Code/NCRF-master/TEST_MASK/level7/HZQ'
     
     FROC_data = np.zeros((4, len(result_file_list)), dtype=np.object)
     FP_summary = np.zeros((2, len(result_file_list)), dtype=np.object)
     detection_summary = np.zeros((2, len(result_file_list)), dtype=np.object)
     
     ground_truth_test = []
-    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.tif')]
+#    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.tif')]
+    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.npy')]
     ground_truth_test = set(ground_truth_test)
 
     caseNum = 0    
@@ -231,7 +237,8 @@ if __name__ == "__main__":
                 
         is_tumor = case[0:-4] in ground_truth_test
         if (is_tumor):
-            maskDIR = os.path.join(mask_folder, case[0:-4]) + '.tif'
+#            maskDIR = os.path.join(mask_folder, case[0:-4]) + '.tif'
+            maskDIR = os.path.join(mask_folder, case[0:-4]) + '.npy'
             evaluation_mask = computeEvaluationMask(maskDIR, L0_RESOLUTION, EVALUATION_MASK_LEVEL)
             ITC_labels = computeITCList(evaluation_mask, L0_RESOLUTION, EVALUATION_MASK_LEVEL)
         else:

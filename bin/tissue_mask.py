@@ -16,7 +16,7 @@ parser.add_argument('wsi_path', default=None, metavar='WSI_PATH', type=str,
                     help='Path to the WSI file')
 parser.add_argument('npy_path', default=None, metavar='NPY_PATH', type=str,
                     help='Path to the output npy mask file')
-parser.add_argument('--level', default=6, type=int, help='at which WSI level'
+parser.add_argument('--level', default=5, type=int, help='at which WSI level'
                     ' to obtain the mask, default 6')
 parser.add_argument('--RGB_min', default=50, type=int, help='min value for RGB'
                     ' channel, default 50')
