@@ -81,7 +81,7 @@ class GridWSIPatchDataset(Dataset):
         y_center = int((y_mask + 0.5) * self._resolution)
 
         x = int(x_center - self._image_size / 2)
-        y = int(y_center - self._image_size / 2)
+        y = int(y_center - self._image_size / 2)#左上角
 
         img = self._slide.read_region(
             (x, y), 0, (self._image_size, self._image_size)).convert('RGB')
