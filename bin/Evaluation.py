@@ -21,8 +21,8 @@ from scipy import ndimage as nd
 from PIL import Image
 
 import os, glob, re, shutil
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3,4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3,4,5,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import numpy as np
 from random import shuffle
 from PIL import Image
@@ -30,9 +30,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import time
 import pandas as pd
+from skimage import measure
 
 from utils import averager, sumer, pixel_wise_accuracy, resize, load_image, load_mask, pixel_wise_accuracy_tensor, dice_score_tensor, convert2hms
-from matrix import pixel_wise_accuracy_numpy, dice_score_numpy, tp_fp_tn_fn
+from matrix import pixel_wise_accuracy_numpy, dice_score_numpy, tp_fp_tn_fn,pixel_wise_accuracy_numpy_1
 
 def computeEvaluationMask(maskDIR, level):
     """Computes the evaluation mask.
@@ -44,38 +45,44 @@ def computeEvaluationMask(maskDIR, level):
     Returns:
         evaluation_mask
     """
-    
+    resolution = 0.243
+
     '''with tiff mask'''
 #    slide = openslide.open_slide(maskDIR)
 #    dims = slide.level_dimensions[level]
 #    pixelarray = np.zeros(dims[0]*dims[1], dtype='uint')
-#    pixelarray = np.array(slide.read_region((0,0), level, dims))
-#    
-#    print('tif to mask ...:',filename)
-#    pixelarray = np.array(pixelarray)
-#    return pixelarray[:,:,0]    
+#    pixelarray = np.array(slide.read_region((0,0), level, dims))[:,:,0]
     
+
     '''with npy mask'''
     print('loading mask ...:',maskDIR)
-    pixelarray = np.load(maskDIR)    
+    pixelarray = np.load(maskDIR, mmap_mode='r')/255
     
-    return pixelarray 
+    return pixelarray   
+#    return evaluation_mask 
     
     
 if __name__ == "__main__":
 
 #    mask_folder = '/mnt/lustre/yuxian/Code/NCRF-master/TEST_MASK'#sys.argv[1]  #ground turth
-    mask_folder = '/mnt/lustre/yuxian/Code/NCRF-master/TEST_MASK/level7/jpeg/gen_from_anno'
-    result_folder = '/mnt/lustre/yuxian/Code/NCRF-master/PROBS_MAP_PATH/crf/LEVEL7'#sys.argv[2]
+#    mask_folder = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level7/'
+    mask_folder = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level6/'
+
+#    result_folder = '/mnt/lustre/yuxian/Code/NCRF-master/PROBS_MAP_PATH/crf/LEVEL7'#sys.argv[2]
+#    result_folder = '/mnt/lustre/yuxian/Code/NCRF-master/PROBS_MAP_PATH/crf/LEVEL6'#sys.argv[2]
+#    result_folder = '/mnt/lustrenew/yuxian/Code/NCRF-master/PROBS_MAP_PATH/crf/xiaodi_level6/'  
+#    result_folder = '/mnt/lustrenew/yuxian/Code/NCRF-master/PROBS_MAP_PATH/xiaodi_level6_jpeg768_balance2/30epoch/'
+    result_folder = '/mnt/lustrenew/yuxian/Code/NCRF-master/PROBS_MAP_PATH/xiaodi_level6_png1024_balance1/'
     
     result_file_list = []
     result_file_list += [each for each in os.listdir(result_folder) if each.endswith('.npy')]
     
-    EVALUATION_MASK_LEVEL = 6 # Image level at which the evaluation is done
+    EVALUATION_MASK_LEVEL = 5 # Image level at which the evaluation is done
         
     ground_truth_test = []
 #    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.tif')]
-    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.jpeg')]
+    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.npy')]
+#    ground_truth_test += [each[0:8] for each in os.listdir(mask_folder) if each.endswith('.jpeg')]
     ground_truth_test = set(ground_truth_test)
     
 #    print(ground_truth_test)
@@ -85,6 +92,7 @@ if __name__ == "__main__":
     test_acc_0 = averager()
     test_acc_1 = averager()
     test_acc_2 = averager()
+    test_acc_2_1 = averager()
     test_dice = averager()
     test_dice_0 = averager()
     test_dice_1 = averager()
@@ -119,23 +127,32 @@ if __name__ == "__main__":
         filename = case.split('.')[0].split('/')[-1]
 #        print('processing:',filename)
         pred = np.load(predDIR)
+#        pred = np.transpose(pred)
         pred = (pred > 0.5).astype(np.uint8)
         
 #        maskDIR = os.path.join(mask_folder, filename) + '.tif'
-        maskDIR = os.path.join(mask_folder, filename) + '.jpeg'
+        maskDIR = os.path.join(mask_folder, filename) + '.npy'
+#        maskDIR = os.path.join(mask_folder, filename) + '.jpeg'
         if not os.path.exists(maskDIR):
             evaluation_mask =  np.zeros(np.shape(pred),dtype=pred.dtype)
         else:
-#            evaluation_mask = computeEvaluationMask(maskDIR, EVALUATION_MASK_LEVEL)    
-            evaluation_mask = np.asarray(Image.open(maskDIR))    
+            evaluation_mask = computeEvaluationMask(maskDIR, EVALUATION_MASK_LEVEL)    
+#            evaluation_mask = np.asarray(Image.open(maskDIR))    
                 
-        np.save('/mnt/lustre/yuxian/Code/NCRF-master/TEST_MASK/level7/jpeg/'+filename,evaluation_mask)    
-        np.save('/mnt/lustre/yuxian/Code/NCRF-master/PROBS_MAP_PATH/PRED_LEVEL7/'+filename,pred)  
+#        np.save('/mnt/lustre/yuxian/Code/NCRF-master/TEST_MASK/level7/tiff/'+filename,evaluation_mask)    
+#        np.save('/mnt/lustre/yuxian/Code/NCRF-master/PROBS_MAP_PATH/PRED_LEVEL7/'+filename,pred)  
         
         print(np.shape(pred))
         print(np.shape(evaluation_mask))
-        if not np.shape(pred)==np.shape(evaluation_mask):
+        if(np.shape(pred)==np.shape(evaluation_mask)):
+            pass
+        else:
             pred = np.transpose(pred)
+
+        print(np.max(pred))
+        print(np.max(evaluation_mask))
+#        if not np.shape(pred)==np.shape(evaluation_mask):
+#            pred = np.transpose(pred)
         tp2,fp2,tn2,fn2 = tp_fp_tn_fn(pred, evaluation_mask)
         acc2 = pixel_wise_accuracy_numpy(pred, evaluation_mask)
         dice2 = dice_score_numpy(pred, evaluation_mask) 
@@ -174,10 +191,13 @@ if __name__ == "__main__":
             if test_dice_1_max < dice2_1: test_dice_1_max = dice2_1
         else:# half patch
             acc2_2 = pixel_wise_accuracy_numpy(pred, evaluation_mask)         
+            acc2_2_1 = pixel_wise_accuracy_numpy_1(pred, evaluation_mask)     
+            
             inter = np.sum(evaluation_mask[pred == 1]) + 0.000001
             union = np.sum(pred) + np.sum(evaluation_mask) + 0.00001
             dice2_2 = 2*inter / union
             test_acc_2.add(acc2_2)
+            test_acc_2_1.add(acc2_2_1)
             test_dice_2.add(dice2_2)
             if test_dice_2_min > dice2_2: test_dice_2_min = dice2_2
             if test_dice_2_max < dice2_2: test_dice_2_max = dice2_2
@@ -204,7 +224,7 @@ if __name__ == "__main__":
     test_ACC = float(test_tp.val() + test_tn.val() + 0.000001) / (test_tp.val() + test_fp.val() + test_tn.val() + test_fn.val() + 0.000001)
     test_F1_Score = 2*test_TPR*test_PPV / (test_TPR + test_PPV)
 
-    print( '...evaluation finished')
-    print( 'test result: acc: %.6f < %.6f < %.6f, dice: %.6f < %.6f < %.6f,\n acc_0(%d):%.6f, acc_1(%d):%.6f, acc_2(%d):%.6f, dice_0(%d): %.6f < %.6f < %.6f, dice_1(%d): %.6f < %.6f < %.6f, dice_2(%d): %.6f < %.6f < %.6f,\n TPR: %.6f, TNR: %.6f, PPV: %.6f, FPV: %.6f, ACC: %.6f, F1_Score: %.6f' % (test_acc_min, test_acc.val(), test_acc_max, test_dice_min, test_dice.val(), test_dice_max, test_dice_0.length(), test_acc_0.val(), test_dice_1.length(), test_acc_1.val(), test_dice_2.length(), test_acc_2.val(), test_dice_0.length(), test_dice_0_min, test_dice_0.val(), test_dice_0_max, test_dice_1.length(), test_dice_1_min, test_dice_1.val(), test_dice_1_max, test_dice_2.length(), test_dice_2_min, test_dice_2.val(), test_dice_2_max, test_TPR, test_TNR, test_PPV, test_FPV, test_ACC, test_F1_Score))
+    print( '====evaluation finished=======\n\n')
+    print( 'Test result: acc: %.6f < %.6f < %.6f, dice: %.6f < %.6f < %.6f,\n acc_0(%d):%.6f, acc_1(%d):%.6f, acc_2(%d):%.6f, acc_2_1:%.6f, dice_0(%d): %.6f , dice_1(%d): %.6f , dice_2(%d): %.6f \n, TPR: %.6f, TNR: %.6f, PPV: %.6f, FPV: %.6f, ACC: %.6f, F1_Score: %.6f' % (test_acc_min, test_acc.val(), test_acc_max, test_dice_min, test_dice.val(), test_dice_max, test_dice_0.length(), test_acc_0.val(), test_dice_1.length(), test_acc_1.val(), test_dice_2.length(), test_acc_2.val(), test_acc_2_1.val(), test_dice_0.length(), test_dice_0.val(), test_dice_1.length(), test_dice_1.val(), test_dice_2.length(), test_dice_2.val(), test_TPR, test_TNR, test_PPV, test_FPV, test_ACC, test_F1_Score))
     
 

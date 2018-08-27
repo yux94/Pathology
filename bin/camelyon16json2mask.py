@@ -391,7 +391,7 @@ class json2mask(object):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
+    data_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/Data/1024/resample/PATCHES_NORMAL_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 #    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_VALID'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 #    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'
 #    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_TRAIN'#/home/likewise-open/SENSETIME/yuxian/Camelyon16/Baidu/NCRF-master/PATCHES_TUMOR_VALID'#/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID'

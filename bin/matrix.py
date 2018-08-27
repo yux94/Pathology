@@ -49,7 +49,13 @@ def pixel_wise_accuracy_numpy(pred, mask):
     '''pred and mask are two numpy arrays'''
     acc = float(np.count_nonzero(mask==pred))/mask.size
     return acc
-
+    
+def pixel_wise_accuracy_numpy_1(pred, mask):
+    '''pred and mask are two numpy arrays'''
+    mask_1 = (mask==0)+1
+    acc = float(np.count_nonzero(mask_1==pred))/np.count_nonzero(mask)         
+    return acc
+    
 def dice_score_numpy(pred, mask):
     '''pred and mask are two numpy arrays'''
     if np.sum(mask) == 0.0: # a negative patch
@@ -60,16 +66,26 @@ def dice_score_numpy(pred, mask):
     dice = 2*inter / union
     #if dice = 2.0: dice = 1.0
     return dice
-
+    
+#def dice_score_numpy_1(pred, mask):
+#    '''pred and mask are two numpy arrays'''
+#    if np.sum(mask) == 0.0: # a negative patch
+#        mask = (mask == 0).astype(np.uint8)
+#        pred = (pred == 0).astype(np.uint8)
+#    
+#    mask_1 = (mask==0)+1
+#    inter = np.sum(mask[pred == 1]) + 0.000001
+#    union = np.sum(pred) + np.sum(mask) + 0.00001
+#    dice = 2*inter / union
+#    #if dice = 2.0: dice = 1.0
+#    return dice
+    
 def tp_fp_tn_fn(pred,mask):
     '''pred and mask are two numpy arrays'''
     tp = np.sum(mask[pred == 1])
     fn = np.sum(mask[pred == 0])
     fp = np.sum(pred[mask == 0])
     tn = mask.size - tp - fn - fp
-
-
-
     #print tp,tn,fp,fn
     #print TPR, TNR, PPV, FPV, ACC
     return tp, fp, tn, fn

@@ -139,7 +139,7 @@ class npy2mask(object):
     Data producer that generate a square grid, e.g. 3x3, of patches and their
     corresponding labels from pre-sampled images.
     """
-    def __init__(self, data_path, npy_path, img_size=768):
+    def __init__(self, data_path, npy_path, save_path, img_size=1024):
         """
         Initialize the data producer.
 
@@ -155,6 +155,7 @@ class npy2mask(object):
         """
         self._data_path = data_path
         self._npy_path = npy_path
+        self._save_path = save_path
         self._img_size = img_size
         self._preprocess()
 
@@ -187,11 +188,6 @@ class npy2mask(object):
         return self._num_patches###
 
     def getitem(self, idx, old_pid, wsi_mask):#label 与原输入图大小一致，mask
-    
-#        save_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_VALID/mask_HZQ/'
-#        save_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_TUMOR_TRAIN/mask_HZQ/'
-#        save_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_VALID/mask_HZQ/'
-        save_path = '/mnt/lustre/yuxian/Code/NCRF-master/Data/PATCHES_NORMAL_TRAIN/mask_HZQ/'
                        
         pid, x_center, y_center, index = self._coords[idx]
 
@@ -199,8 +195,8 @@ class npy2mask(object):
 #        y_top_left = int(y_center - self._img_size / 2)
        
            
-#        if not os.path.exists(save_path+str(index)+'.jpeg') or os.path.getsize(save_path+str(index)+'.jpeg')==0:   
-        if index==127328:
+        if not os.path.exists(self._save_path+str(index)+'.png') or os.path.getsize(self._save_path+str(index)+'.png')==0:   
+#        if index==127328:
             x_top_left = int(x_center - self._img_size / 2) 
             y_top_left = int(y_center - self._img_size / 2)
             if x_top_left<0:
@@ -227,15 +223,15 @@ class npy2mask(object):
                 label_img =  wsi_mask[y_top_left:y_top_left + self._img_size, x_top_left:x_top_left + self._img_size]#, y_top_left:y_top_left + self._img_size]               
     #            label_img =  wsi_mask[x_top_left:x_top_left + self._img_size, y_top_left:y_top_left + self._img_size]               
             
-#            print(np.max(label_img))            
+    #            print(np.max(label_img))            
     #        label_img = np.transpose(label_img)    
             label_img = Image.fromarray(label_img.astype(np.uint8))  
     
             
-            if not os.path.exists(save_path):
-                os.mkdir(save_path)
+            if not os.path.exists(self._save_path):
+                os.mkdir(self._save_path)
             
-            label_img.save(save_path+str(index)+'.jpeg',"jpeg")
+            label_img.save(self._save_path+str(index)+'.png',"png")
     
               
         logging.info('saving mask patch {}/{} ...pid: {}  index: {}'.format(idx,self._num_patches,pid, index))
@@ -244,13 +240,24 @@ class npy2mask(object):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-#    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/coords/tumor_valid.txt'
-#    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/coords/tumor_train.txt'
-#    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/coords/normal_valid.txt'
-    data_path = '/mnt/lustre/yuxian/Code/NCRF-master/coords/normal_train.txt'
     npy_path = '/mnt/lustre/share/CAMELYON16/masks_training_cv2/'
 
-    npy2mask(data_path,npy_path)
+    data_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/coords/resample/normal_train.txt'
+    save_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/Data/1024/resample/PATCHES_NORMAL_TRAIN/mask_HZQ_png/'    
+    npy2mask(data_path,npy_path,save_path)
+    
+#    data_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/coords/resample/tumor_valid.txt'
+#    save_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/Data/1024/PATCHES_TUMOR_VALID/mask_HZQ_png/'
+#    npy2mask(data_path,npy_path,save_path)    
+#    
+#    data_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/coords/resample/tumor_train.txt'
+#    save_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/Data/1024/PATCHES_TUMOR_TRAIN/mask_HZQ_png/'
+#    npy2mask(data_path,npy_path,save_path)    
+#
+#    data_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/coords/resample/normal_valid.txt'
+#    save_path = '/mnt/lustrenew/yuxian/Code/NCRF-master/Data/1024/PATCHES_NORMAL_VALID/mask_HZQ_png/'
+#    npy2mask(data_path,npy_path,save_path)    
+
     
 
 if __name__ == '__main__':

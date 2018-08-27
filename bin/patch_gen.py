@@ -18,16 +18,18 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../../')
 
 parser = argparse.ArgumentParser(description='Generate patches from a given '
                                  'list of coordinates')
-parser.add_argument('wsi_path', default='/Data/WSI_TRAIN_VAL/', metavar='WSI_PATH', type=str,
-#parser.add_argument('wsi_path', default='/Data/WSI_TRAIN/', metavar='WSI_PATH', type=str,
+#parser.add_argument('wsi_path', default='/Data/WSI_TRAIN_VAL/', metavar='WSI_PATH', type=str,
+parser.add_argument('wsi_path', default='/Data/WSI_TRAIN/', metavar='WSI_PATH', type=str,
+#parser.add_argument('wsi_path', default='/Data/WSI_TEST/', metavar='WSI_mask_PATH', type=str,
                     help='Path to the input directory of WSI files')
 parser.add_argument('coords_path', default='/coords/resample/normal_train.txt', metavar='COORDS_PATH',
 #parser.add_argument('coords_path', default='/coords/normal_train.txt', metavar='COORDS_PATH',
+#parser.add_argument('coords_path', default='/coords/normal_train.txt', metavar='COORDS_PATH',
                     type=str, help='Path to the input list of coordinates')#normal_train   normal_valid   tumor_train   tumor_valid
-parser.add_argument('patch_path', default='/Data/resample/PATCHES_NORMAL_TRAIN/', metavar='PATCH_PATH', type=str,
+parser.add_argument('patch_path', default='/Data/1024/resample/PATCHES_NORMAL_TRAIN/', metavar='PATCH_PATH', type=str,
 #parser.add_argument('patch_path', default='/Data/PATCHES_NORMAL_TRAIN/', metavar='PATCH_PATH', type=str,
                     help='Path to the output directory of patch images')#PATCHES_NORMAL_TRAIN  PATCHES_NORMAL_VALID  PATCHES_TUMOR_TRAIN  PATCHES_TUMOR_VALID
-parser.add_argument('--patch_size', default=768, type=int, help='patch size, '
+parser.add_argument('--patch_size', default=1024, type=int, help='patch size, '
                     'default 768')
 parser.add_argument('--level', default=0, type=int, help='level for WSI, to '
                     'generate patches, default 0')
@@ -44,20 +46,21 @@ def process(opts):
     x = int(int(x_center) - args.patch_size / 2)
     y = int(int(y_center) - args.patch_size / 2)
     wsi_path = os.path.join(args.wsi_path, pid + '.tif')
-    try:
-        slide = openslide.OpenSlide(wsi_path)
-    #    slide = openslide.open_slide(wsi_path)
-        
-#        if not (pid=='normal_031'): 
-        img = slide.read_region(
-            (x, y), args.level,
-            (args.patch_size, args.patch_size)).convert('RGB')
-        
-        img.save(os.path.join(args.patch_path, str(i) + '.jpeg'))
+    if not os.path.exists(os.path.join(args.patch_path, str(i) + '.jpeg')):
+        try:
+            slide = openslide.OpenSlide(wsi_path)
+        #    slide = openslide.open_slide(wsi_path)
             
-    except:
-        logging.info('{} image wrong...'
-                     .format((i, pid, x_center, y_center)))
+    #        if not (pid=='normal_031'): 
+            img = slide.read_region(
+                (x, y), args.level,
+                (args.patch_size, args.patch_size)).convert('RGB')
+            
+            img.save(os.path.join(args.patch_path, str(i) + '.jpeg'))
+                
+        except:
+            logging.info('{} image wrong...'
+                         .format((i, pid, x_center, y_center)))
 #        raise
 
 #    img.save(os.path.join(args.patch_path, str(i) + '.jpeg'))
@@ -71,9 +74,9 @@ def process(opts):
     with lock:
         count.value += 1
         if (count.value) % 100 == 0:
-            logging.info('{}, {} patches generated...'
+            logging.info('{}, {} patches of {}-{} generated...'
                          .format(time.strftime("%Y-%m-%d %H:%M:%S"),
-                                 count.value))
+                                 count.value, pid,str(i)))
 
 
 def run(args):
@@ -92,6 +95,11 @@ def run(args):
 #        process(i, pid, x_center, y_center, args)
         
     infile.close()
+    '''modified below'''
+    opts_list.reverse() 
+#    from IPython import embed; embed()
+#    import pdb
+#    pdb.set_trace()
     
     pool = Pool(processes=args.num_process)
     pool.map(process, opts_list)

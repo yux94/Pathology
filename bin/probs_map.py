@@ -33,7 +33,7 @@ parser.add_argument('mask_path', default=None, metavar='MASK_PATH', type=str,
                     help='Path to the tissue mask of the input WSI file')
 parser.add_argument('probs_map_path', default=None, metavar='PROBS_MAP_PATH',
                     type=str, help='Path to the output probs_map numpy file')
-parser.add_argument('--GPU', default='1', type=str, help='which GPU to use'
+parser.add_argument('--GPU', default='0', type=str, help='which GPU to use'
                     ', default 0')
 parser.add_argument('--num_workers', default=5, type=int, help='number of '
                     'workers to use to make batch, default 5')
@@ -52,26 +52,28 @@ def get_probs_map(th, total, model, dataloader):
     count = 0
     time_now = time.time()
     for (data, x_mask, y_mask) in dataloader:
-        data = Variable(data.cuda(async=True), volatile=True)
-        output = model(data)
-        # because of torch.squeeze at the end of forward in resnet.py, if the
-        # len of dim_0 (batch_size) of data is 1, then output removes this dim.
-        # should be fixed in resnet.py by specifying torch.squeeze(dim=2) later
-        if len(output.shape) == 1:
-            probs = output[idx_center].sigmoid().cpu().data.numpy().flatten()
-        else:
-            probs = output[:,
-                           idx_center].sigmoid().cpu().data.numpy().flatten()
-        probs_map[x_mask, y_mask] = probs
-        count += 1
-        if count%100==0:
-            time_spent = time.time() - time_now
-            time_now = time.time()
-            logging.info(
-                '{}, flip : {}, rotate : {}, Processing : {}/{}, batch : {}/{}, Run Time : {:.2f}'
-                .format(
-                    time.strftime("%Y-%m-%d %H:%M:%S"), dataloader.dataset._flip,
-                    dataloader.dataset._rotate, th, total, count, num_batch, time_spent))
+        with torch.no_grad():
+
+            data = Variable(data.cuda(async=True))#, volatile=True)
+            output = model(data)
+            # because of torch.squeeze at the end of forward in resnet.py, if the
+            # len of dim_0 (batch_size) of data is 1, then output removes this dim.
+            # should be fixed in resnet.py by specifying torch.squeeze(dim=2) later
+            if len(output.shape) == 1:
+                probs = output[idx_center].sigmoid().cpu().data.numpy().flatten()
+            else:
+                probs = output[:,
+                               idx_center].sigmoid().cpu().data.numpy().flatten()
+            probs_map[x_mask, y_mask] = probs
+            count += 1
+            if count%100==0:
+                time_spent = time.time() - time_now
+                time_now = time.time()
+                logging.info(
+                    '{}, flip : {}, rotate : {}, Processing : {}/{}, batch : {}/{}, Run Time : {:.2f}'
+                    .format(
+                        time.strftime("%Y-%m-%d %H:%M:%S"), dataloader.dataset._flip,
+                        dataloader.dataset._rotate, th, total, count, num_batch, time_spent))
 
     return probs_map
 
@@ -128,10 +130,10 @@ def run(args):
     '''批量tif预测'''
     count = 0
     files = os.listdir(args.wsi_path)
-    files.reverse() 
+#    files.reverse() 
     
     for eachfile in files:
-        if count>len(files)/2:        
+        if count>len(files)*1/4:        
             mask_path = args.mask_path+eachfile[:-4]+'.npy'
             mask = np.load(mask_path)
             if not os.path.exists(args.probs_map_path+eachfile[:-4]+'.npy'):
@@ -178,8 +180,10 @@ def run(args):
                     probs_map += get_probs_map(count, len(files), model, dataloader)
             
                     probs_map /= 8
-            
-                np.save(args.probs_map_path+eachfile[:-4], probs_map)        
+        
+    #                np.save('/mnt/lustre/yuxian/Data_t1/NCRF-master/PROBS_MAP_PATH/baidu_model_level6/'+eachfile[:-4], probs_map)        
+#                np.save('/mnt/lustre/yuxian/Data_t1/NCRF-master/PROBS_MAP_PATH/resample_level6/'+eachfile[:-4], probs_map)        
+                np.save('/mnt/lustrenew/yuxian/Code/NCRF-master/PROBS_MAP_PATH/resample_level6/'+eachfile[:-4], probs_map)        
 
         count += 1
                         
