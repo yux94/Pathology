@@ -100,18 +100,11 @@ def main(name):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     import os
-    xml_dir = '/mnt/lustre/yuxian/Data/Camelyon16/training/lesion_annotations'
-    tif_dir = '/mnt/lustre/share/CAMELYON16/training/tumor'
-#    npy_dir = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level6'
-#    npy_dir = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level6'
-    npy_dir = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_training_cv2_level7'
+    xml_dir = './CAMELYON16/training/lesion_annotations'
+    tif_dir = './CAMELYON16/training/tumor'
+    npy_dir = './mask_training_cv2_level7'
     os.makedirs(npy_dir, exist_ok=True)
     names = [os.path.splitext(xml_file)[0] for xml_file in sorted(os.listdir(xml_dir)) if xml_file.endswith('.xml')]
     Pool().map(main, names)
 
-#    xml_dir = 'lesion_annotations/training'
-#    tif_dir = '/mnt/lustre/DATAshare/DATAMIA/CAMELYON16/CAMELYON16/training/tumor'
-#    npy_dir = '/mnt/lustre/yuxian/Code/NCRF-master/Data/mask_testing_cv2_level7'
-#    os.makedirs(npy_dir, exist_ok=True)
-#    names = [os.path.splitext(xml_file)[0] for xml_file in sorted(os.listdir(xml_dir)) if xml_file.endswith('.xml')]
-#    Pool().map(main, names)
+
